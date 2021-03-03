@@ -1,0 +1,7 @@
+{
+  "name": "autoclose",
+  "version": "1.0.0",
+  "description": "A plugin for Dragory's Discord ModMail that automatically closes inactive threads",
+  "main": "./autoClose.js",
+  "author": "YetAnotherConnor"
+}
