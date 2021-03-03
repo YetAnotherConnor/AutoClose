@@ -22,7 +22,9 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
     const data = fs.readFileSync(`./AutoCloseData${jsonSuffix}.json`);
     autoCloseThreads = JSON.parse(data);
     console.info(`[AutoClose] Successfully loaded ${autoCloseThreads.length} thread(s)`);
-    console.info(`[AutoClose] Threads close at ${closeHours} hours with warns at ${warnHours} hours and at ${warnMinutes} minutes`);
+    console.info(
+      `[AutoClose] Threads close at ${closeHours} hours with warns at ${warnHours} hours and at ${warnMinutes} minutes`,
+    );
   }
 
   //stores all registered threads into the data file for persistence
@@ -31,7 +33,7 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
   };
 
   /**
-   * update or add entry based off the channelId 
+   * update or add entry based off the channelId
    * @param {String} channelId ID of given channel
    * @param {String} warnStatus status of entry
    *    0: less than closeHours remaining (default)
@@ -46,7 +48,7 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
     for (autoCloseThread of autoCloseThreads) {
       if (autoCloseThread.channelId == channelId) {
         if (autoCloseThread.warnStatus == "3") return;
-        if (resetMsg && (autoCloseThread.warnStatus !== "0")) {
+        if (resetMsg && autoCloseThread.warnStatus !== "0") {
           const userThread = await threads.findOpenThreadByChannelId(channelId);
           userThread.postSystemMessage(`:gear: **AutoClose:** Reset AutoClose for this thread`);
         }
@@ -61,7 +63,7 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
     const entry = {
       channelId: channelId,
       warnStatus: warnStatus == null ? "0" : warnStatus,
-      closeAt: closeAt == null ? (Date.now() + closeHours) : closeAt
+      closeAt: closeAt == null ? Date.now() + closeHours : closeAt,
     };
     autoCloseThreads.push(entry);
     saveACData();
@@ -70,7 +72,7 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
 
   /**
    * removes the index of the thread object in autoCloseThreads
-   * @param {Object} removedThread 
+   * @param {Object} removedThread
    */
   function remove(removedThread) {
     for (i = 0; i < autoCloseThreads.length; i++) {
@@ -85,7 +87,8 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
     //loop through autoCloseThreads and check if closeAt < now
     //also check for warn status and warn messages
     for (autoCloseThread of autoCloseThreads) {
-      if (autoCloseThread.warnStatus == "3") continue; //auto close suspended
+      if (autoCloseThread.warnStatus == "3") continue;
+      //auto close suspended
       else if (autoCloseThread.closeAt < Date.now()) {
         //close the thread and delete entry
         const userThread = await threads.findOpenThreadByChannelId(autoCloseThread.channelId);
@@ -95,7 +98,7 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
           continue;
         }
 
-        //date & time as YYYY-MM-DD hh:mm:ss format: 
+        //date & time as YYYY-MM-DD hh:mm:ss format:
         const dateNow = new Date(autoCloseThread.closeAt);
         const year = dateNow.getFullYear();
         const month = ("0" + (dateNow.getMonth() + 1)).slice(-2);
@@ -106,16 +109,14 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
         const time = year + "-" + month + "-" + date + " " + hours + ":" + minutes + ":" + seconds;
 
         //by updating threads table at scheduled_close _at and _name, close.js takes care of closing
-        await knex("threads")
-          .where("id", userThread.id)
-          .update({
-            scheduled_close_at: time,
-            scheduled_close_id: bot.user.id, //just for reference
-            scheduled_close_name: "**AutoClose**"
-          });
+        await knex("threads").where("id", userThread.id).update({
+          scheduled_close_at: time,
+          scheduled_close_id: bot.user.id, //just for reference
+          scheduled_close_name: "**AutoClose**",
+        });
 
         remove(autoCloseThread);
-      } else if ((autoCloseThread.closeAt < (Date.now() + warnMinutes) && (autoCloseThread.warnStatus < 2))) {
+      } else if (autoCloseThread.closeAt < Date.now() + warnMinutes && autoCloseThread.warnStatus < 2) {
         //warning stage 2, 30 minute warning by default
         const userThread = await threads.findOpenThreadByChannelId(autoCloseThread.channelId);
         if (!userThread) {
@@ -124,9 +125,11 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
           continue;
         }
 
-        userThread.postSystemMessage(`:gear: **AutoClose:** This thread will close in ${warnMinutes / MINUTES} minutes`);
+        userThread.postSystemMessage(
+          `:gear: **AutoClose:** This thread will close in ${warnMinutes / MINUTES} minutes`,
+        );
         updateEntry(autoCloseThread.channelId, "2");
-      } else if ((autoCloseThread.closeAt < (Date.now() + warnHours)) && (autoCloseThread.warnStatus < 1)) {
+      } else if (autoCloseThread.closeAt < Date.now() + warnHours && autoCloseThread.warnStatus < 1) {
         //warning stage 1, 6 hour warning by default
         const userThread = await threads.findOpenThreadByChannelId(autoCloseThread.channelId);
         if (!userThread) {
@@ -149,7 +152,7 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
    * each time a message is sent in a thread,
    * autoClose will reset closeAt, warnStatus if needed
    */
-  bot.on("messageCreate", async message => {
+  bot.on("messageCreate", async (message) => {
     if (message.guildID !== config.inboxServerId) return;
 
     //check if message was from AutoClose
@@ -163,7 +166,7 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
     const userThread = await threads.findOpenThreadByChannelId(message.channel.id);
     if (!userThread) return;
 
-    updateEntry(message.channel.id, "0", (Date.now() + closeHours), true);
+    updateEntry(message.channel.id, "0", Date.now() + closeHours, true);
   });
 
   /**
@@ -179,12 +182,12 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
           if (autoCloseThread.warnStatus == "3") {
             userThread.postSystemMessage(`:gear: **AutoClose:** This thread is currently stopped`);
           } else {
-            const milisecondsLeft = autoCloseThread.closeAt - Date.now()
+            const milisecondsLeft = autoCloseThread.closeAt - Date.now();
             const hoursLeft = Math.floor(milisecondsLeft / HOURS);
-            const minutesLeft = Math.floor((milisecondsLeft - (hoursLeft * HOURS)) / MINUTES);
-            const closeTime = `${hoursLeft == 0 ? `` : hoursLeft + ` hours`
-              }${(hoursLeft != 0) && (minutesLeft != 0) ? ` and ` : ``
-              }${minutesLeft == 0 ? `` : minutesLeft + ` minutes`}`
+            const minutesLeft = Math.floor((milisecondsLeft - hoursLeft * HOURS) / MINUTES);
+            const closeTime = `${hoursLeft == 0 ? `` : hoursLeft + ` hours`}${
+              hoursLeft != 0 && minutesLeft != 0 ? ` and ` : ``
+            }${minutesLeft == 0 ? `` : minutesLeft + ` minutes`}`;
             userThread.postSystemMessage(`:gear: **AutoClose:** This thread will close in ${closeTime}`);
           }
         }
@@ -193,16 +196,16 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
       for (autoCloseThread of autoCloseThreads) {
         if (autoCloseThread.channelId == userThread.channel_id) {
           autoCloseThread.warnStatus = "0";
-          autoCloseThread.closeAt = (Date.now() + closeHours);
+          autoCloseThread.closeAt = Date.now() + closeHours;
           saveACData();
         }
       }
-      userThread.postSystemMessage(`:gear: **AutoClose:** Restarted AutoClose for this thread`)
+      userThread.postSystemMessage(`:gear: **AutoClose:** Restarted AutoClose for this thread`);
     } else if (args.command == "stop") {
       updateEntry(userThread.channel_id, "3");
-      userThread.postSystemMessage(`:gear: **AutoClose:** Stopped AutoClose for this thread`)
+      userThread.postSystemMessage(`:gear: **AutoClose:** Stopped AutoClose for this thread`);
     }
-  }
+  };
 
   commands.addInboxThreadCommand("ac", [{ name: "command", type: "string", required: false }], acCmd);
 };
