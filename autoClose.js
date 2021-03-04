@@ -23,7 +23,8 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
     autoCloseThreads = JSON.parse(data);
     console.info(`[AutoClose] Successfully loaded ${autoCloseThreads.length} thread(s)`);
     console.info(
-      `[AutoClose] Threads close at ${closeHours} hours with warns at ${warnHours} hours and at ${warnMinutes} minutes`,
+      `[AutoClose] Threads close at ${closeHours / HOURS} hours with warns at ${warnHours / HOURS
+        } hours and at ${warnMinutes / MINUTES} minutes`,
     );
   }
 
