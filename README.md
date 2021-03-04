@@ -22,8 +22,7 @@ This plugin requires the `AutoCloseData.json` file which is created on first lau
 If you run multiple instances of the bot from the same folder, you can set an `autoClose-suffix` in your config.ini file which will differentiate other `AutoCloseData[suffix].json` files.
 
 ## Commands
-
-Parameters in <> are required, parameters in [] optional. These commands can only be used within a modmail thread.
+These commands can only be used within a modmail thread.
 ### Stopping AutoClose from Closing a Thread
 Useage: `!ac stop`
 - AutoClose will not close the thread this command is sent in until `!ac start` is sent
