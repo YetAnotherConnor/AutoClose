@@ -5,7 +5,7 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
   const MINUTES = 60 * 1000;
   const HOURS = 60 * MINUTES;
 
-  const closeHours = config["autoClose-choseHours"] ? config["autoClose-choseHours"] * HOURS : 24 * HOURS;
+  const closeHours = config["autoClose-closeHours"] ? config["autoClose-closeHours"] * HOURS : 24 * HOURS;
   const warnHours = config["autoClose-warnHours"] ? config["autoClose-warnHours"] * HOURS : 6 * HOURS;
   const warnMinutes = config["autoClose-warnMinutes"] ? config["autoClose-warnMinutes"] * MINUTES : 30 * MINUTES;
 
