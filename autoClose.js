@@ -21,7 +21,6 @@ module.exports = async function ({ bot, commands, config, threads, knex }) {
     //load registered threads if the file exists
     const data = fs.readFileSync(`./AutoCloseData${jsonSuffix}.json`);
     autoCloseThreads = JSON.parse(data);
-    console.info(`[AutoClose] Successfully loaded ${autoCloseThreads.length} thread(s)`);
     console.info(
       `[AutoClose] Threads close at ${closeHours / HOURS} hours with warns at ${warnHours / HOURS
         } hours and at ${warnMinutes / MINUTES} minutes`,
